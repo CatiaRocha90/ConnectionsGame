@@ -1,4 +1,5 @@
 import streamlit as st
+import random
 
 # Define the groups and words with colors
 GROUPS = {
@@ -23,6 +24,8 @@ if "selected_word_states" not in st.session_state:
     st.session_state.selected_word_states = {word: False for word, _, _ in WORDS}
 if "correct_groups" not in st.session_state:
     st.session_state.correct_groups = []
+if "shuffled_words" not in st.session_state:
+    st.session_state.shuffled_words = random.sample(WORDS, len(WORDS))
 
 # Helper function to check groups
 def check_group():
@@ -36,10 +39,10 @@ def check_group():
     if len(groups) == 1:  # All words belong to the same group
         group = groups.pop()
         if group in st.session_state.correct_groups:
-            st.warning(f"You already found the '{group}' group.")
+            st.warning("You already found this group.")
         else:
             st.session_state.correct_groups.append(group)
-            st.success(f"Correct! You've completed the '{group}' group.")
+            st.success("Correct! You found a group.")
             # Disable the words in the completed group
             for word, g, _ in WORDS:
                 if g == group:
@@ -55,7 +58,7 @@ def check_group():
 
 # Render word buttons
 cols = st.columns(4)
-for i, (word, group, color) in enumerate(WORDS):
+for i, (word, group, color) in enumerate(st.session_state.shuffled_words):
     with cols[i % 4]:
         if st.session_state.selected_word_states[word] is None:
             st.button(word, key=f"disabled_{word}", disabled=True, use_container_width=True)
@@ -79,8 +82,8 @@ if st.button("Check Group"):
 # Display correct groups
 if st.session_state.correct_groups:
     st.write("### Correct Groups Found:")
-    for group in st.session_state.correct_groups:
-        st.markdown(f"- **{group}**")
+    for _ in st.session_state.correct_groups:
+        st.markdown(f"- **Group Found**")
 
 # Check if game is completed
 if len(st.session_state.correct_groups) == len(GROUPS):
