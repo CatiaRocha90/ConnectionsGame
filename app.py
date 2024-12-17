@@ -3,7 +3,7 @@ import random
 
 # Define the groups and words with colors
 GROUPS = {
-    "Best": (["Selling", "Kown", "Ever", "Fit"], "#D8BFD8"),  # Light Yellow
+    "Best": (["Selling", "Known", "Ever", "Fit"], "#D8BFD8"),  # Light Yellow
     "Newbie": (["Rookie", "Starter", "Novice", "A Baby"], "#98FB98"),  # Light Green
     "Gym": (["Gossip", "Lifestyle", "Be strong", "Good time"], "#ADD8E6"),  # Light Blue
     "Buddy": (["Friend", "Partner", "Pal", "Teammate"], "#FFFACD"),  # Light Purple
