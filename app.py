@@ -1,83 +1,83 @@
-import random
 import streamlit as st
+import random
 
-# Define word groups
-groups = {
-    "Best": ["Best", "Bestman", "Bestie", "Best-seller"],
-    "Newbie": ["Newbie", "Newcomer", "Beginner", "Rookie"],
-    "Gym": ["Gym", "Gymnast", "Gymnasium", "Gymwear"],
-    "Buddy": ["Buddy", "Pal", "Companion", "Sidekick"]
+# Define the groups and words with colors
+GROUPS = {
+    "Best": (["Selling", "Known", "Ever", "Fit"], "#D8BFD8"),  # Light Yellow
+    "Newbie": (["Rookie", "Starter", "Novice", "A Baby"], "#98FB98"),  # Light Green
+    "Gym": (["Gossip", "Lifestyle", "Be strong", "Good time"], "#ADD8E6"),  # Light Blue
+    "Buddy": (["Friend", "Partner", "Pal", "Teammate"], "#FFFACD"),  # Light Purple
 }
 
-# Define colors for the groups
-group_colors = {
-    "Best": "#FFD700",  # Gold
-    "Newbie": "#ADD8E6",  # Light Blue
-    "Gym": "#90EE90",  # Light Green
-    "Buddy": "#DA70D6"  # Orchid
-}
+WORDS = [(word, group, color) for group, (words, color) in GROUPS.items() for word in words]
+random.shuffle(WORDS)
 
-# Shuffle words
-all_words = []
-for group in groups.values():
-    all_words.extend(group)
-random.shuffle(all_words)
-
-# State management
-if "found_groups" not in st.session_state:
-    st.session_state.found_groups = []
+# Initialize session state
 if "selected_words" not in st.session_state:
     st.session_state.selected_words = []
+if "correct_groups" not in st.session_state:
+    st.session_state.correct_groups = []
+if "game_completed" not in st.session_state:
+    st.session_state.game_completed = False
 
-# Game title
-st.title("Connections Game")
+def check_group():
+    """Check if the selected words form a valid group."""
+    selected_words = st.session_state.selected_words
+    if len(selected_words) != 4:
+        st.warning("You must select exactly 4 words!")
+        return
 
-# Instructions
-st.write(
-    """
-    Welcome to the Connections Game! 
-    Select four words that belong to the same group. Once all four groups are correctly identified, the game will reveal the words organized by groups and color.
-    """
-)
+    # Determine the groups of the selected words
+    groups = {group for word, group, color in WORDS if word in selected_words}
 
-# Display words as clickable buttons
-columns = st.columns(4)
-for i, word in enumerate(all_words):
-    col = columns[i % 4]
-    if word not in st.session_state.selected_words:
-        if col.button(word):
-            st.session_state.selected_words.append(word)
-
-# Process selections
-if len(st.session_state.selected_words) == 4:
-    selected_group = None
-    for group_name, group_words in groups.items():
-        if set(st.session_state.selected_words) == set(group_words):
-            selected_group = group_name
-            break
-
-    if selected_group:
-        st.session_state.found_groups.append(selected_group)
-        st.session_state.selected_words = []  # Reset selections
-        st.success(f"Correct! You found the {selected_group} group.")
-        all_words = [word for word in all_words if word not in groups[selected_group]]
+    if len(groups) == 1:  # All words belong to the same group
+        group = groups.pop()
+        if group in st.session_state.correct_groups:
+            st.warning(f"You already found the '{group}' group!")
+        else:
+            st.session_state.correct_groups.append(group)
+            st.success(f"Correct! You found the '{group}' group.")
+            if len(st.session_state.correct_groups) == 4:
+                st.session_state.game_completed = True
     else:
-        st.error("Those words don't form a valid group. Try again!")
-        st.session_state.selected_words = []  # Reset selections
+        st.error("Incorrect! The selected words don't belong to the same group.")
 
-# Check if the game is complete
-if len(st.session_state.found_groups) == 4:
-    st.success("🎉 All groups have been found! 🎉")
-    st.write("Here are the groups and their words:")
+    # Reset the selection
+    st.session_state.selected_words = []
 
-    for group_name in ["Best", "Newbie", "Gym", "Buddy"]:
-        st.markdown(
-            f"<h3 style='color:{group_colors[group_name]}'>{group_name}</h3>",
-            unsafe_allow_html=True
-        )
-        st.write(", ".join(groups[group_name]))
+# Streamlit UI
+st.title("Connections Game")
+st.write("Select 4 words that belong to the same group. Find all 4 groups to win!")
 
-    # Clear state for a new game
-    if st.button("Play Again"):
-        st.session_state.clear()
+# Display words as buttons
+cols = st.columns(4)
+for i, (word, group, color) in enumerate(WORDS):
+    disabled = (
+        word in st.session_state.selected_words or
+        st.session_state.game_completed or
+        group in st.session_state.correct_groups
+    )
+    with cols[i % 4]:
+        if st.button(word, key=f"word_{i}", disabled=disabled):
+            if word not in st.session_state.selected_words:
+                st.session_state.selected_words.append(word)
 
+# Show selected words
+if st.session_state.selected_words:
+    st.write("Selected Words:", ", ".join(st.session_state.selected_words))
+
+# Check group button
+if st.button("Check Group"):
+    check_group()
+
+# Game completion
+if st.session_state.game_completed:
+    st.balloons()
+    st.write("### Congratulations! You've found all the groups:")
+    
+    group_order = ["Best", "Newbie", "Gym", "Buddy"]  # Desired order
+    for group in group_order:
+        words = [word for word, g, color in WORDS if g == group]
+        title_color = GROUPS[group][1]
+        st.markdown(f"#### <span style='color:{title_color};font-weight:bold'>{group}</span>", unsafe_allow_html=True)
+        st.write(", ".join(words))
