@@ -106,4 +106,7 @@ if len(st.session_state.correct_groups) == len(GROUPS):
                 # Use st.markdown to add HTML styling
                 st.markdown(f'<div style="background-color: {color}; color: black; text-align: center; padding: 10px; border-radius: 5px;">{word}</div>', unsafe_allow_html=True)
 
+    # Add the "Best Newbie Gym Buddy" message
+    st.write("### Best Newbie Gym Buddy!")
+    
     st.stop()
