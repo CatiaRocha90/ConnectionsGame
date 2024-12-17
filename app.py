@@ -1,4 +1,3 @@
-import random
 import streamlit as st
 
 # Define the groups and words with colors
@@ -9,36 +8,31 @@ GROUPS = {
     "Buddy": (["Friend", "Partner", "Pal", "Teammate"], "#FFFACD"),  # Light Purple
 }
 
-# Initialize words and shuffle only once
-if "WORDS" not in st.session_state:
-    st.session_state.WORDS = [(word, group, color) for group, (words, color) in GROUPS.items() for word in words]
-    random.shuffle(st.session_state.WORDS)
+# Flatten the groups into a single list of words
+WORDS = [(word, group, color) for group, (words, color) in GROUPS.items() for word in words]
 
-# Initialize state for selected words and correct groups
+# Streamlit App
+st.set_page_config(page_title="Connections Game", layout="centered")
+st.title("Connections Game")
+st.write("Select 4 words that belong to the same group.")
+
+# State management
 if "selected_words" not in st.session_state:
     st.session_state.selected_words = []
+if "selected_word_states" not in st.session_state:
+    st.session_state.selected_word_states = {word: False for word, _, _ in WORDS}
 if "correct_groups" not in st.session_state:
     st.session_state.correct_groups = []
 
-# Helper function to lighten a HEX color
-def lighten_color(hex_color, amount=0.5):
-    """Lighten the given HEX color by the specified amount (0-1)."""
-    hex_color = hex_color.lstrip("#")
-    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-    r = int(r + (255 - r) * amount)
-    g = int(g + (255 - g) * amount)
-    b = int(b + (255 - b) * amount)
-    return f"#{r:02x}{g:02x}{b:02x}"
-
-# Check selected words for correctness
+# Helper function to check groups
 def check_group():
     selected_words = st.session_state.selected_words
     if len(selected_words) != 4:
         st.warning("You must select exactly 4 words!")
         return
 
-    # Determine the groups of selected words
-    groups = set(word[1] for word in st.session_state.WORDS if word[0] in selected_words)
+    # Check if all selected words belong to the same group
+    groups = set(word[1] for word in WORDS if word[0] in selected_words)
     if len(groups) == 1:  # All words belong to the same group
         group = groups.pop()
         if group in st.session_state.correct_groups:
@@ -46,35 +40,34 @@ def check_group():
         else:
             st.session_state.correct_groups.append(group)
             st.success(f"Correct! You've completed the '{group}' group.")
-            # Remove completed group words from the word list
-            st.session_state.WORDS = [
-                (word, g, color) for word, g, color in st.session_state.WORDS if g != group
-            ]
+            # Disable the words in the completed group
+            for word, g, _ in WORDS:
+                if g == group:
+                    st.session_state.selected_word_states[word] = None  # Mark as disabled
     else:
         st.error("Incorrect group! Try again.")
 
     # Reset the selected words
+    for word in selected_words:
+        if st.session_state.selected_word_states[word] is not None:
+            st.session_state.selected_word_states[word] = False
     st.session_state.selected_words = []
 
 # Render word buttons
 cols = st.columns(4)
-for i, (word, group, color) in enumerate(st.session_state.WORDS):
+for i, (word, group, color) in enumerate(WORDS):
     with cols[i % 4]:
-        # Determine button appearance based on selection
-        button_color = lighten_color(color) if word in st.session_state.selected_words else color
-        button_style = f"background-color: {button_color}; color: black; padding: 10px; border-radius: 5px; border: none;"
-
-        if st.button(
-            word,
-            key=f"word_{word}",
-            help=f"Group: {group}",
-            args=(word,),
-            use_container_width=True,
-        ):
-            if word in st.session_state.selected_words:
-                st.warning(f"'{word}' is already selected.")
-            else:
-                st.session_state.selected_words.append(word)
+        if st.session_state.selected_word_states[word] is None:
+            st.button(word, key=f"disabled_{word}", disabled=True, use_container_width=True)
+        else:
+            button_style = f"background-color: {color if st.session_state.selected_word_states[word] else '#FFFFFF'}; color: black;"
+            if st.button(word, key=f"word_{word}", use_container_width=True, help=f"Group: {group}"):
+                if st.session_state.selected_word_states[word]:
+                    st.session_state.selected_words.remove(word)
+                    st.session_state.selected_word_states[word] = False
+                else:
+                    st.session_state.selected_words.append(word)
+                    st.session_state.selected_word_states[word] = True
 
 # Display selected words
 st.write(f"**Selected Words:** {', '.join(st.session_state.selected_words) if st.session_state.selected_words else 'None'}")
