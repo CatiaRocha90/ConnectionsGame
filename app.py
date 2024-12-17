@@ -72,9 +72,9 @@ for i, (word, group, color) in enumerate(st.session_state.shuffled_words):
                 else:
                     st.session_state.selected_words.append(word)
                     st.session_state.selected_word_states[word] = True
-
+#st.write(f"**Selected Words:** {', '.join(st.session_state.selected_words) if st.session_state.selected_words else 'None'}")
 # Display selected words
-st.write(f"**Selected Words:** {', '.join(st.session_state.selected_words) if st.session_state.selected_words else 'None'}")
+st.write(f"**Selected Words:** {st.session_state.selected_words}")
 
 # Check Group Button
 if st.button("Check Group"):
