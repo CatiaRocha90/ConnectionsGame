@@ -64,7 +64,7 @@ for i, (word, group, color) in enumerate(st.session_state.shuffled_words):
             st.button(word, key=f"disabled_{word}", disabled=True, use_container_width=True)
         else:
             button_style = f"background-color: {color if st.session_state.selected_word_states[word] else '#FFFFFF'}; color: black;"
-            if st.button(word, key=f"word_{word}", use_container_width=True, help=f"Group: {group}"):
+            if st.button(word, key=f"word_{word}", use_container_width=True):
                 if st.session_state.selected_word_states[word]:
                     st.session_state.selected_words.remove(word)
                     st.session_state.selected_word_states[word] = False
@@ -79,11 +79,11 @@ st.write(f"**Selected Words:** {', '.join(st.session_state.selected_words) if st
 if st.button("Check Group"):
     check_group()
 
-# Display correct groups
-if st.session_state.correct_groups:
-    st.write("### Correct Groups Found:")
-    for _ in st.session_state.correct_groups:
-        st.markdown(f"- **Group Found**")
+# # Display correct groups
+# if st.session_state.correct_groups:
+#     st.write("### Correct Groups Found:")
+#     for _ in st.session_state.correct_groups:
+#         st.markdown(f"- **Group Found**")
 
 # Check if game is completed
 if len(st.session_state.correct_groups) == len(GROUPS):
