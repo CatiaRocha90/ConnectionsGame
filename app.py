@@ -72,9 +72,18 @@ for i, (word, group, color) in enumerate(st.session_state.shuffled_words):
                 else:
                     st.session_state.selected_words.append(word)
                     st.session_state.selected_word_states[word] = True
-#st.write(f"**Selected Words:** {', '.join(st.session_state.selected_words) if st.session_state.selected_words else 'None'}")
-# Display selected words
-st.write(f"**Selected Words:** {st.session_state.selected_words}")
+
+# Display selected words with color (similar to final groups)
+if st.session_state.selected_words:
+    st.write("**Selected Words:**")
+    for word in st.session_state.selected_words:
+        # Get the color of the selected word
+        color = next(color for word_item, group, color in WORDS if word_item == word)
+        
+        # Display each selected word with its color
+        st.markdown(f'<div style="background-color: {color}; color: black; text-align: center; padding: 10px; border-radius: 5px; margin: 5px;">{word}</div>', unsafe_allow_html=True)
+else:
+    st.write("**Selected Words:** None")
 
 # Check Group Button
 if st.button("Check Group"):
@@ -90,10 +99,11 @@ if len(st.session_state.correct_groups) == len(GROUPS):
     for group, (words, color) in GROUPS.items():
         st.write(f"**{group}:**")
         
-        # Create a row of buttons for each group, with words in the same row
+        # Create a row of words for each group, with words in the same row and color
         group_cols = st.columns(len(words))
         for i, word in enumerate(words):
             with group_cols[i]:
-                st.button(word, key=f"final_{word}", disabled=True, use_container_width=True, 
-                          help=f"Group: {group}", style=f"background-color: {color}; color: black;")
+                # Use st.markdown to add HTML styling
+                st.markdown(f'<div style="background-color: {color}; color: black; text-align: center; padding: 10px; border-radius: 5px;">{word}</div>', unsafe_allow_html=True)
+
     st.stop()
