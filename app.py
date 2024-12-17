@@ -57,7 +57,7 @@ def check_group():
     st.session_state.selected_words = []
 
 
-# Render word buttons
+# Render word buttons with 4 columns, 4x4 grid
 cols = st.columns(4)
 for i, (word, group, color) in enumerate(st.session_state.shuffled_words):
     with cols[i % 4]:
@@ -84,6 +84,25 @@ else:
 # Check Group Button
 if st.button("Check Group"):
     check_group()
+
+# Add custom CSS for responsive layout (better for mobile)
+st.markdown("""
+    <style>
+    @media only screen and (max-width: 600px) {
+        .stButton > button {
+            font-size: 14px;
+            padding: 8px;
+        }
+        .stColumns > div {
+            flex: 1 1 0 !important;  /* Ensure equal column width for smaller screens */
+        }
+        .stWrite {
+            font-size: 18px;
+            text-align: center;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # Check if game is completed
 if len(st.session_state.correct_groups) == len(GROUPS):
